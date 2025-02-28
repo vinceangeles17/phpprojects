@@ -1,8 +1,7 @@
 <?php
 session_start();
-include 'connection.php'; // Include the database connection
+include 'connection.php'; 
 
-// Redirect to login.php if not logged in
 if (!isset($_SESSION['email'])) {
     header("Location: login.php");
     exit();
@@ -13,8 +12,6 @@ if (isset($_POST['logout'])) {
     header("Location: login.php");
     exit();
 }
-
-// Fetch user details
 $email = $_SESSION['email'];
 $stmt = $conn->prepare("SELECT firstname, lastname, email FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);

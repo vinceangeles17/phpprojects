@@ -1,30 +1,37 @@
 <?php
 session_start();
-include 'connection.php'; // Include the database connection
+include 'connection.php'; 
 
-// Redirect to welcome.php if already logged in
 if (isset($_SESSION['email'])) {
     header("Location: welcome.php");
     exit();
 }
 
-$error_message = ""; // Initialize error message
+$error_message = ""; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Check if the required fields are set
     if (isset($_POST['email']) && isset($_POST['password'])) {
         $email = $_POST['email'];
-        $password = md5($_POST['password']); // Hash the password
+        $password = $_POST['password'];
 
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND password = ?");
-        $stmt->bind_param("ss", $email, $password);
+        $stmt = $conn->prepare("SELECT password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            $_SESSION['email'] = $email;
-            header("Location: welcome.php");
-            exit();
+            $row = $result->fetch_assoc();
+            $hashed_password = $row['password'];
+
+            // Verify the password
+            if (password_verify($password, $hashed_password)) {
+                $_SESSION['email'] = $email;
+                header("Location: welcome.php");
+                exit();
+            } else {
+                $error_message = "Invalid email or password.";
+            }
         } else {
             $error_message = "Invalid email or password.";
         }

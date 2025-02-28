@@ -2,14 +2,14 @@
 session_start();
 include 'connection.php';
 
-$messages = [];
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $firstname = $_POST['firstname'];
     $lastname = $_POST['lastname'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
+
+    $messages = [];
 
     if ($password !== $confirm_password) {
         $messages[] = "<span style='color: red;'>Passwords do not match.</span>";
@@ -24,13 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($result->num_rows > 0) {
             $messages[] = "<span style='color: red;'>Email is already in use.</span>";
         } else {
-            $hashed_password = md5($password);
+            // Hash the password
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             $stmt = $conn->prepare("INSERT INTO users (firstname, lastname, email, password) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("ssss", $firstname, $lastname, $email, $hashed_password);
 
             if ($stmt->execute()) {
-                $messages[] = "<span style='color: green;'>Registration successful!</span>";
+                header("Location: login.php");
+                exit();
             } else {
                 $messages[] = "<span style='color: red;'>Error: " . htmlspecialchars($stmt->error) . "</span>";
             }
